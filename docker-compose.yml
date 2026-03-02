@@ -16,7 +16,4 @@ services:
       PUPPETEER_HEADLESS: "true"
       USE_PROXY: "false"
     volumes:
-      - carelink_bridge_data:/app/data
-
-volumes:
-  carelink_bridge_data:
+      - /DATA/AppData/carelink-bridge:/app/data
