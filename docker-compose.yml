@@ -1,17 +1,18 @@
 services:
   carelink-bridge:
-    build:
-      context: .
-    image: carelink-bridge:latest
+    image: bfreire/carelink-bridge:latest
     container_name: carelink-bridge
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      CARELINK_LOGINDATA_FILE: /app/data/logindata.json
+      CARELINK_USERNAME: "your-carelink-user"
+      CARELINK_PASSWORD: "your-carelink-pass"
+      API_SECRET: "your-nightscout-secret"
+      NS: "https://your-nightscout-url"
+      MMCONNECT_SERVER: "EU" # or US
+      CARELINK_LOGINDATA_FILE: "/app/data/logindata.json"
       CARELINK_NON_INTERACTIVE: "true"
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
-      PUPPETEER_HEADLESS: "false"
+      PUPPETEER_EXECUTABLE_PATH: "/usr/bin/chromium"
+      PUPPETEER_HEADLESS: "true"
       USE_PROXY: "false"
     volumes:
       - carelink_bridge_data:/app/data
