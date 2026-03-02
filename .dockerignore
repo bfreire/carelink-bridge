@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+dist
+coverage
+*.log
+.DS_Store
+logindata.json
+my.env
+https.txt
+test

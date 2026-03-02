@@ -8,9 +8,10 @@ import axios, { type AxiosInstance } from 'axios';
 import puppeteer from 'puppeteer-core';
 import qs from 'qs';
 import type { LoginData, Auth0SSOConfig, DiscoverResponse } from './types/carelink.js';
+import { getLoginDataFilePath } from './paths.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const LOGINDATA_FILE = path.join(__dirname, '..', 'logindata.json');
+export const LOGINDATA_FILE = getLoginDataFilePath();
 
 function toBase64Url(buf: Buffer): string {
   return buf.toString('base64')
@@ -37,6 +38,10 @@ function openBrowser(url: string): void {
 }
 
 function findBrowserPath(): string | undefined {
+  if (process.env['PUPPETEER_EXECUTABLE_PATH']) {
+    return process.env['PUPPETEER_EXECUTABLE_PATH'];
+  }
+
   if (process.platform === 'win32') {
     const prefixes = [
       process.env['LOCALAPPDATA'],
@@ -74,6 +79,20 @@ function findBrowserPath(): string | undefined {
     } catch { /* not found */ }
   }
   return undefined;
+}
+
+function isNonInteractiveMode(): boolean {
+  const val = (process.env['CARELINK_NON_INTERACTIVE'] || '').toLowerCase();
+  if (val === 'true') return true;
+  if (val === 'false') return false;
+  return !process.stdin.isTTY;
+}
+
+function useHeadlessBrowser(): boolean {
+  const val = (process.env['PUPPETEER_HEADLESS'] || '').toLowerCase();
+  if (val === 'true') return true;
+  if (val === 'false') return false;
+  return isNonInteractiveMode();
 }
 
 async function resolveAuth0Config(isUS: boolean): Promise<{ ssoConfig: Auth0SSOConfig; baseUrl: string }> {
@@ -285,9 +304,16 @@ async function loginViaBrowser(
   console.log('[Login] Opening browser window...');
   const browser = await puppeteer.launch({
     executablePath: browserPath,
-    headless: false,
+    headless: useHeadlessBrowser(),
     defaultViewport: null,
-    args: ['--no-first-run', '--no-default-browser-check', '--window-size=500,700'],
+    args: [
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--window-size=500,700',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+    ],
   });
 
   const page = (await browser.pages())[0] || await browser.newPage();
@@ -457,6 +483,12 @@ export async function login(isUS: boolean, username?: string, password?: string)
     } catch (err) {
       const msg = (err as Error).message;
       console.log('[Login] Browser login failed:', msg);
+      if (isNonInteractiveMode()) {
+        throw new Error(
+          'Interactive login is required but CARELINK_NON_INTERACTIVE=true. ' +
+          'Set CARELINK_NON_INTERACTIVE=false and retry in an interactive session.',
+        );
+      }
       console.log('[Login] Falling back to terminal...');
       authCode = await loginViaTerminal(ssoConfig, baseUrl, codeChallenge);
     }
@@ -490,6 +522,7 @@ export async function login(isUS: boolean, username?: string, password?: string)
     audience: client.audience,
   };
 
+  fs.mkdirSync(path.dirname(LOGINDATA_FILE), { recursive: true });
   fs.writeFileSync(LOGINDATA_FILE, JSON.stringify(loginData, null, 4));
   console.log('[Login] Saved to logindata.json');
   return loginData;

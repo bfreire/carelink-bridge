@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import axios from 'axios';
 import qs from 'qs';
 import type { LoginData } from '../types/carelink.js';
@@ -24,6 +25,7 @@ export function loadLoginData(filePath: string): LoginData | null {
 }
 
 export function saveLoginData(filePath: string, data: LoginData): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(data, null, 4));
 }
 

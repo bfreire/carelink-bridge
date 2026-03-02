@@ -6,6 +6,7 @@ import * as logger from '../logger.js';
 import { loadLoginData, saveLoginData, isTokenExpired, refreshToken } from './token.js';
 import { loadProxyList, createProxyAgent, ProxyRotator } from './proxy.js';
 import { resolveServerName, buildUrls, type CareLinkUrls } from './urls.js';
+import { getLoginDataFilePath } from '../paths.js';
 import type { CareLinkData, CareLinkUserInfo, CareLinkPatientLink, CareLinkCountrySettings } from '../types/carelink.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,7 +46,7 @@ export class CareLinkClient {
       options.serverName || process.env['MMCONNECT_SERVERNAME'],
     );
     this.urls = buildUrls(this.serverName, countryCode, lang);
-    this.loginDataPath = path.join(__dirname, '..', '..', 'logindata.json');
+    this.loginDataPath = getLoginDataFilePath();
 
     // Load proxy list
     const useProxy = (process.env['USE_PROXY'] || 'true').toLowerCase() !== 'false';

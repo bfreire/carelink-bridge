@@ -10,7 +10,66 @@ It connects to Medtronic's CareLink servers the same way the official CareLink a
 - A [CareLink](https://carelink.minimed.com/) account with a connected pump (MiniMed 7xxG, MiniMed Connect, or Guardian Connect)
 - A working [Nightscout](http://www.nightscout.info/) site
 
-## Getting started
+## Run with Docker (recommended for ZimaOS)
+
+### 1. Create `.env`
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set at least:
+
+```env
+CARELINK_USERNAME=your-carelink-username
+CARELINK_PASSWORD=your-carelink-password
+API_SECRET=your-nightscout-api-secret
+NS=https://your-nightscout-site.example.com
+MMCONNECT_SERVER=EU
+```
+
+For US accounts, use:
+
+```env
+MMCONNECT_SERVER=US
+```
+
+### 2. Build and start
+
+```bash
+docker compose up -d --build
+```
+
+The container will:
+- run login automatically if no saved token exists
+- store token data in a persistent Docker volume
+- start the bridge loop after login
+
+### 3. Check logs
+
+```bash
+docker logs -f carelink-bridge
+```
+
+### ZimaOS setup
+
+Use a custom Docker Compose app and point it to this project's `docker-compose.yml`.
+
+- Upload/copy this project to your ZimaOS host
+- Edit `.env` with your CareLink and Nightscout values
+- Start the app from ZimaOS (or run `docker compose up -d --build`)
+
+After first successful login, restarts are automatic and reuse saved login data.
+
+### Docker files included
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `docker/entrypoint.sh`
+
+---
+
+## Run directly with Node.js
 
 ### 1. Download and install
 
@@ -86,6 +145,11 @@ All settings go in the `.env` file. Only the first four are required — the res
 | `CARELINK_INTERVAL` | `300` | How often to fetch data, in seconds (300 = 5 minutes) |
 | `CARELINK_PATIENT` | | Patient username, only needed if your care partner account has multiple patients |
 | `CARELINK_QUIET` | `true` | Set to `false` to see more detailed logs |
+| `CARELINK_NON_INTERACTIVE` | `false` | Set to `true` for container/server mode (fails instead of prompting terminal input) |
+| `CARELINK_LOGINDATA_FILE` | `logindata.json` | Path where login tokens are saved |
+| `PUPPETEER_EXECUTABLE_PATH` | auto-detect | Browser path for fallback login |
+| `PUPPETEER_HEADLESS` | auto | Set `true` to run browser fallback in headless mode |
+| `USE_PROXY` | `true` | Set to `false` if you do not use proxy list rotation |
 
 ## For developers
 

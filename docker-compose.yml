@@ -1,0 +1,20 @@
+services:
+  carelink-bridge:
+    build:
+      context: .
+    image: carelink-bridge:latest
+    container_name: carelink-bridge
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CARELINK_LOGINDATA_FILE: /app/data/logindata.json
+      CARELINK_NON_INTERACTIVE: "true"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      PUPPETEER_HEADLESS: "false"
+      USE_PROXY: "false"
+    volumes:
+      - carelink_bridge_data:/app/data
+
+volumes:
+  carelink_bridge_data:
