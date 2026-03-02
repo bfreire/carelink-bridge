@@ -1,5 +1,6 @@
 services:
   carelink-bridge:
+    platform: linux/amd64
     image: bfreire/carelink-bridge:latest
     container_name: carelink-bridge
     restart: unless-stopped
