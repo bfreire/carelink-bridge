@@ -51,5 +51,6 @@ export function loadConfig(): Config {
     patientId: readEnvString('CARELINK_PATIENT'),
     countryCode: readEnvString('MMCONNECT_COUNTRYCODE', 'gb')!,
     language: readEnvString('MMCONNECT_LANGCODE', 'en')!,
+    debugDumpResponse: readEnvBool('DEBUG_DUMP_RESPONSE', false),
   };
 }

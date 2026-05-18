@@ -10,3 +10,12 @@ export function getLoginDataFilePath(): string {
   }
   return path.isAbsolute(customPath) ? customPath : path.resolve(process.cwd(), customPath);
 }
+
+export function getDataDir(): string {
+  const loginDataPath = getLoginDataFilePath();
+  return path.dirname(loginDataPath);
+}
+
+export function getDumpFilePath(): string {
+  return path.join(getDataDir(), 'carelink-dump.json');
+}

@@ -16,6 +16,7 @@ import { makeRecencyFilter } from './filter.js';
 import { upload } from './nightscout/upload.js';
 import * as logger from './logger.js';
 import { login, LOGINDATA_FILE } from './login.js';
+import { getDumpFilePath } from './paths.js';
 import type { NightscoutSGVEntry, NightscoutDeviceStatus } from './types/nightscout.js';
 
 const config = loadConfig();
@@ -43,6 +44,35 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+let debugDumpDone = false;
+
+function maybeDumpResponse(data: unknown): void {
+  if (!config.debugDumpResponse || debugDumpDone) return;
+  debugDumpDone = true;
+
+  const dumpPath = getDumpFilePath();
+  const json = JSON.stringify(data, null, 2);
+
+  try {
+    fs.writeFileSync(dumpPath, json, 'utf8');
+    console.log('[Debug] Full CareLink response written to:', dumpPath);
+  } catch (err) {
+    console.error('[Debug] Failed to write dump file:', err);
+    console.log('[Debug] Printing response to stdout instead:');
+    console.log(json);
+  }
+
+  // Always print a summary of top-level keys and array lengths to logs
+  if (data && typeof data === 'object') {
+    const summary = Object.entries(data as Record<string, unknown>).map(([k, v]) => {
+      if (Array.isArray(v)) return `  ${k}: Array(${v.length})`;
+      if (v && typeof v === 'object') return `  ${k}: Object(${Object.keys(v).length} keys)`;
+      return `  ${k}: ${JSON.stringify(v)}`;
+    }).join('\n');
+    console.log('[Debug] CareLink response summary:\n' + summary);
+  }
+}
+
 async function uploadIfNew(items: unknown[], endpoint: string): Promise<void> {
   if (items.length === 0) {
     logger.log('No new items for', endpoint);
@@ -65,6 +95,7 @@ async function requestLoop(): Promise<void> {
         console.log('[Bridge] Warning: received empty or invalid data from CareLink');
         console.log('[Bridge] Data keys:', Object.keys(data || {}));
       } else {
+        maybeDumpResponse(data);
         const transformed = transform(data, config.sgvLimit);
         const newSgvs = filterSgvs(transformed.entries);
         const newDeviceStatuses = filterDeviceStatus(transformed.devicestatus);

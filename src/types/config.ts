@@ -11,4 +11,5 @@ export interface Config {
   patientId?: string;
   countryCode: string;
   language: string;
+  debugDumpResponse: boolean;
 }
