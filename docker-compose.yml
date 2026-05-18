@@ -15,5 +15,6 @@ services:
       PUPPETEER_EXECUTABLE_PATH: "/usr/bin/chromium"
       PUPPETEER_HEADLESS: "true"
       USE_PROXY: "false"
+      DEBUG_DUMP_RESPONSE: "false" # set to "true" to dump full CareLink API response to /app/data/carelink-dump.json
     volumes:
       - /DATA/AppData/carelink-bridge:/app/data
