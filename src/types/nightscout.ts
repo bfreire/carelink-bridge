@@ -63,6 +63,12 @@ export interface NightscoutTreatment {
   insulin?: number;
   carbs?: number;
   duration?: number; // minutes, for Combo Bolus extended part
+  /** Blood glucose value for BG Check events */
+  glucose?: number;
+  /** "Finger" for fingerstick calibrations */
+  glucoseType?: string;
+  /** "mg/dl" or "mmol" */
+  units?: string;
   notes?: string;
   device?: string;
 }

@@ -1,5 +1,6 @@
 import type {
   CareLinkData,
+  CareLinkMarkerCalibration,
   CareLinkMarkerInsulin,
   CareLinkMarkerMeal,
 } from '../types/carelink.js';
@@ -130,5 +131,34 @@ export function treatmentEntries(
     });
   }
 
+  // Calibrations → "BG Check" treatments (fingerstick values used to calibrate sensor)
+  // Failed calibrations are skipped — they didn't update the sensor.
+  const bgUnits = normalizeUnits(data.bgUnits ?? data.bgunits);
+  const calibrationMarkers = markers.filter(
+    (m): m is CareLinkMarkerCalibration =>
+      m.type === 'CALIBRATION' &&
+      (m as CareLinkMarkerCalibration).calibrationSuccess !== false,
+  );
+  for (const cal of calibrationMarkers) {
+    const calTime = parseMarkerTime(cal.dateTime, offsetMilliseconds);
+    treatments.push({
+      eventType: 'BG Check',
+      created_at: timestampAsString(calTime),
+      glucose: cal.value,
+      glucoseType: 'Finger',
+      ...(bgUnits && { units: bgUnits }),
+      device,
+    });
+  }
+
   return treatments;
+}
+
+/** Normalise CareLink unit strings to Nightscout conventions */
+function normalizeUnits(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const lower = raw.toLowerCase();
+  if (lower.includes('mmol')) return 'mmol';
+  if (lower.includes('mg')) return 'mg/dl';
+  return undefined;
 }
