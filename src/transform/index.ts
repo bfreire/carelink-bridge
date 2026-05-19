@@ -3,6 +3,7 @@ import type { CareLinkData } from '../types/carelink.js';
 import type { NightscoutSGVEntry, NightscoutDeviceStatus, TransformResult } from '../types/nightscout.js';
 import { CARELINK_TREND_TO_NIGHTSCOUT_TREND } from './trend-map.js';
 import { guessPumpOffset, guessPumpOffsetMilliseconds } from './pump-offset.js';
+import { treatmentEntries } from './treatments.js';
 
 const STALE_DATA_THRESHOLD_MINUTES = 20;
 
@@ -121,7 +122,7 @@ export function transform(data: CareLinkData, sgvLimit?: number): TransformResul
 
   if (recency > STALE_DATA_THRESHOLD_MINUTES) {
     logger.log('Stale CareLink data: ' + recency.toFixed(2) + ' minutes old');
-    return { devicestatus: [], entries: [] };
+    return { devicestatus: [], entries: [], treatments: [] };
   }
 
   const offset = guessPumpOffset(data);
@@ -131,5 +132,6 @@ export function transform(data: CareLinkData, sgvLimit?: number): TransformResul
   return {
     devicestatus: [deviceStatusEntry(data, offset, offsetMilliseconds)],
     entries: sgvEntries(data, offset, offsetMilliseconds).slice(-limit),
+    treatments: treatmentEntries(data, offsetMilliseconds, deviceName(data)),
   };
 }

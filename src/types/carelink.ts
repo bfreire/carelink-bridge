@@ -1,3 +1,65 @@
+// ─── Marker types ────────────────────────────────────────────────────────────
+
+export type CareLinkMarkerActivationType =
+  | 'AUTOCORRECTION'
+  | 'MANUAL'
+  | 'RECOMMENDED'
+  | 'UNDETERMINED';
+
+export type CareLinkMarkerBolusType = 'NORMAL' | 'EXTENDED' | 'MULTIWAVE';
+
+export interface CareLinkMarkerBase {
+  type: string;
+  index: number;
+  kind: string;
+  version: number;
+  dateTime: string;
+  relativeOffset: number;
+}
+
+/** Bolus delivered by user or SmartGuard auto-correction — NOT basal micro-boluses */
+export interface CareLinkMarkerInsulin extends CareLinkMarkerBase {
+  type: 'INSULIN';
+  activationType: CareLinkMarkerActivationType;
+  bolusType: CareLinkMarkerBolusType;
+  programmedFastAmount: number;
+  deliveredFastAmount: number;
+  programmedExtendedAmount: number;
+  deliveredExtendedAmount: number;
+  programmedDuration: number;
+  effectiveDuration: number;
+  completed: boolean;
+  id: string;
+}
+
+export interface CareLinkMarkerMeal extends CareLinkMarkerBase {
+  type: 'MEAL';
+  amount: number; // grams of carbs
+}
+
+export interface CareLinkMarkerCalibration extends CareLinkMarkerBase {
+  type: 'CALIBRATION';
+  value: number;
+  calibrationSuccess: boolean;
+}
+
+/**
+ * SmartGuard basal micro-bolus — part of closed-loop basal delivery.
+ * These are NOT bolus treatments and should be ignored for /treatments.json.
+ */
+export interface CareLinkMarkerAutoBasal extends CareLinkMarkerBase {
+  type: 'AUTO_BASAL_DELIVERY';
+}
+
+export type CareLinkMarker =
+  | CareLinkMarkerInsulin
+  | CareLinkMarkerMeal
+  | CareLinkMarkerCalibration
+  | CareLinkMarkerAutoBasal
+  | (CareLinkMarkerBase & { type: string });
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface CareLinkSG {
   sg: number;
   datetime: string;
@@ -44,6 +106,7 @@ export interface CareLinkData {
   reservoirAmount?: number;
   activeInsulin?: CareLinkActiveInsulin;
   lastAlarm?: CareLinkAlarm;
+  markers?: CareLinkMarker[];
   bgUnits?: string;
   bgunits?: string;
   timeFormat?: string;

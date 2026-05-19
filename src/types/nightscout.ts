@@ -36,7 +36,18 @@ export interface NightscoutDeviceStatus {
   };
 }
 
+export interface NightscoutTreatment {
+  eventType: string;
+  created_at: string;
+  insulin?: number;
+  carbs?: number;
+  duration?: number; // minutes, for Combo Bolus extended part
+  notes?: string;
+  device?: string;
+}
+
 export interface TransformResult {
   devicestatus: NightscoutDeviceStatus[];
   entries: NightscoutSGVEntry[];
+  treatments: NightscoutTreatment[];
 }

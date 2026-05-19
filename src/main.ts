@@ -17,7 +17,7 @@ import { upload } from './nightscout/upload.js';
 import * as logger from './logger.js';
 import { login, LOGINDATA_FILE } from './login.js';
 import { getDumpFilePath } from './paths.js';
-import type { NightscoutSGVEntry, NightscoutDeviceStatus } from './types/nightscout.js';
+import type { NightscoutSGVEntry, NightscoutDeviceStatus, NightscoutTreatment } from './types/nightscout.js';
 
 const config = loadConfig();
 logger.setVerbose(config.verbose);
@@ -34,9 +34,13 @@ const client = new CareLinkClient({
 const baseUrl = config.nsBaseUrl || ('https://' + config.nsHost);
 const entriesUrl = baseUrl + '/api/v1/entries.json';
 const devicestatusUrl = baseUrl + '/api/v1/devicestatus.json';
+const treatmentsUrl = baseUrl + '/api/v1/treatments.json';
 
 const filterSgvs = makeRecencyFilter<NightscoutSGVEntry>(item => item.date);
 const filterDeviceStatus = makeRecencyFilter<NightscoutDeviceStatus>(
+  item => new Date(item.created_at).getTime(),
+);
+const filterTreatments = makeRecencyFilter<NightscoutTreatment>(
   item => new Date(item.created_at).getTime(),
 );
 
@@ -99,6 +103,7 @@ async function requestLoop(): Promise<void> {
         const transformed = transform(data, config.sgvLimit);
         const newSgvs = filterSgvs(transformed.entries);
         const newDeviceStatuses = filterDeviceStatus(transformed.devicestatus);
+        const newTreatments = filterTreatments(transformed.treatments);
 
         logger.log(
           `Next check in ${Math.round(config.interval / 1000)}s` +
@@ -107,6 +112,7 @@ async function requestLoop(): Promise<void> {
 
         await uploadIfNew(newSgvs, entriesUrl);
         await uploadIfNew(newDeviceStatuses, devicestatusUrl);
+        await uploadIfNew(newTreatments, treatmentsUrl);
       }
     } catch (error) {
       console.error(error);
