@@ -104,9 +104,31 @@ export interface CareLinkData {
   timeToNextCalibHours: number;
   reservoirRemainingUnits?: number;
   reservoirAmount?: number;
+  reservoirLevelPercent?: number;
+  medicalDeviceSuspended?: boolean;
   activeInsulin?: CareLinkActiveInsulin;
   lastAlarm?: CareLinkAlarm;
   markers?: CareLinkMarker[];
+  // CGM statistics (last ~24 h window reported by CareLink)
+  timeInRange?: number;
+  averageSG?: number;
+  belowHypoLimit?: number;
+  aboveHyperLimit?: number;
+  // Sensor transmitter battery (NGP / Guardian Link)
+  gstBatteryLevel?: number;
+  // Current basal delivery
+  basal?: {
+    activeBasalPattern: string;
+    basalRate: number;
+  };
+  // SmartGuard / Auto Mode state
+  therapyAlgorithmState?: {
+    autoModeShieldState: string;
+    autoModeReadinessState: string;
+    plgmLgsState: string;
+    safeBasalDuration: number;
+    waitToCalibrateDuration: number;
+  };
   bgUnits?: string;
   bgunits?: string;
   timeFormat?: string;

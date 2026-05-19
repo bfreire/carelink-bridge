@@ -52,6 +52,9 @@ function deviceStatusEntry(
     };
   }
 
+  const bas = data.basal;
+  const therapy = data.therapyAlgorithmState;
+
   return {
     created_at: timestampAsString(data.lastMedicalDeviceDataUpdateServerTime),
     device: deviceName(data),
@@ -61,6 +64,8 @@ function deviceStatusEntry(
     pump: {
       battery: { percent: data.medicalDeviceBatteryLevelPercent },
       reservoir: data.reservoirRemainingUnits ?? data.reservoirAmount,
+      ...(data.reservoirLevelPercent != null && { reservoirPercent: data.reservoirLevelPercent }),
+      ...(data.medicalDeviceSuspended != null && { suspended: data.medicalDeviceSuspended }),
       iob: {
         timestamp: timestampAsString(data.lastMedicalDeviceDataUpdateServerTime),
         bolusiob: data.activeInsulin?.amount != null && data.activeInsulin.amount >= 0
@@ -70,6 +75,18 @@ function deviceStatusEntry(
       clock: timestampAsString(
         parsePumpTime(data.sMedicalDeviceTime, offset, offsetMilliseconds)
       ),
+      ...(bas != null && {
+        basal: {
+          rate: bas.basalRate,
+          activeProfile: bas.activeBasalPattern,
+        },
+      }),
+      ...(therapy != null && {
+        autoMode: {
+          shieldState: therapy.autoModeShieldState,
+          readinessState: therapy.autoModeReadinessState,
+        },
+      }),
     },
     connect: {
       sensorState: data.sensorState,
@@ -79,6 +96,11 @@ function deviceStatusEntry(
       conduitInRange: data.conduitInRange,
       conduitMedicalDeviceInRange: data.conduitMedicalDeviceInRange,
       conduitSensorInRange: data.conduitSensorInRange,
+      ...(data.gstBatteryLevel != null && { gstBatteryLevel: data.gstBatteryLevel }),
+      ...(data.timeInRange != null && { timeInRange: data.timeInRange }),
+      ...(data.averageSG != null && { averageSG: data.averageSG }),
+      ...(data.belowHypoLimit != null && { belowHypoLimit: data.belowHypoLimit }),
+      ...(data.aboveHyperLimit != null && { aboveHyperLimit: data.aboveHyperLimit }),
     },
   };
 }
