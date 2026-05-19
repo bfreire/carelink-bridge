@@ -9,7 +9,7 @@ import type { NightscoutTreatment } from '../types/nightscout.js';
  * Two markers are considered "co-occurring" (i.e. the INSULIN is for a meal)
  * if their pump timestamps are within this window.
  */
-const MEAL_BOLUS_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const MEAL_BOLUS_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 function parseMarkerTime(dateTime: string, offsetMilliseconds: number): number {
   return Date.parse(dateTime) - offsetMilliseconds;
