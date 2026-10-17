@@ -92,6 +92,8 @@ export interface CareLinkData {
   sMedicalDeviceTime: string;
   lastMedicalDeviceDataUpdateServerTime: number;
   medicalDeviceFamily: string;
+  /** Returned by /patient/monitor/data on newer BLE devices. */
+  deviceFamily?: string;
   medicalDeviceBatteryLevelPercent: number;
   conduitBatteryLevel: number;
   conduitBatteryStatus: string;
